@@ -224,5 +224,3 @@ with tab3:
         use_container_width=True,
         disabled=True
     )
-        use_container_width=True
-    )
