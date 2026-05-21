@@ -5,3 +5,5 @@ google-auth
 plotly
 requests
 beautifulsoup4
+selenium
+webdriver-manager
