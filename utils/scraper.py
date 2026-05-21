@@ -1,45 +1,15 @@
-import requests
-from bs4 import BeautifulSoup
+from utils.driver import conectar_driver
 
 # =========================================================
-# COLETAR FII
+# OBTER HTML
 # =========================================================
 
-def coletar_fii(ticker):
+def obter_html(url):
 
-    url = f"https://investidor10.com.br/fiis/{ticker.lower()}/"
+    driver = conectar_driver()
 
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    driver.get(url)
 
-    response = requests.get(
-        url,
-        headers=headers
-    )
+    html = driver.page_source
 
-    soup = BeautifulSoup(
-        response.text,
-        "html.parser"
-    )
-
-    dados = {}
-
-    try:
-
-        indicadores = soup.find_all(
-            "div",
-            class_="_card-body"
-        )
-
-        texto = soup.get_text()
-
-        dados["Fundo"] = ticker
-
-        return dados
-
-    except Exception as erro:
-
-        print(f"Erro em {ticker}: {erro}")
-
-        return None
+    return html
