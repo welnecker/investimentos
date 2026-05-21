@@ -1,13 +1,17 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 from utils.sheets import carregar_fiis
 from utils.score import calcular_score
+from utils.indicadores import (
+    formatar_milhoes,
+    definir_status,
+    colorir_score
+)
 
 # =========================================================
-# CONFIGURAÇÃO DA PÁGINA
+# CONFIG
 # =========================================================
 
 st.set_page_config(
@@ -17,14 +21,14 @@ st.set_page_config(
 )
 
 # =========================================================
-# TÍTULO
+# HEADER
 # =========================================================
 
 st.title("📊 Radar de FIIs")
 st.caption("Monitoramento de FIIs de Papel e Tijolo")
 
 # =========================================================
-# CARREGAR DADOS
+# DADOS
 # =========================================================
 
 df = carregar_fiis()
@@ -35,6 +39,15 @@ df = carregar_fiis()
 
 df["Score"] = df.apply(
     calcular_score,
+    axis=1
+)
+
+# =========================================================
+# STATUS
+# =========================================================
+
+df["Status"] = df.apply(
+    definir_status,
     axis=1
 )
 
@@ -74,7 +87,7 @@ col4.metric(
 )
 
 # =========================================================
-# FILTROS
+# SIDEBAR
 # =========================================================
 
 st.sidebar.header("Filtros")
@@ -85,9 +98,65 @@ tipo_filtro = st.sidebar.multiselect(
     default=df["Tipo"].unique()
 )
 
+# =========================================================
+# FILTRAR
+# =========================================================
+
 df_filtrado = df[
     df["Tipo"].isin(tipo_filtro)
+].copy()
+
+# =========================================================
+# FORMATAR
+# =========================================================
+
+df_exibicao = df_filtrado.copy()
+
+df_exibicao["Liquidez"] = df_exibicao[
+    "Liquidez"
+].apply(formatar_milhoes)
+
+# =========================================================
+# OPORTUNIDADES
+# =========================================================
+
+oportunidades = df_filtrado[
+    (df_filtrado["PVP"] < 0.95)
+    &
+    (df_filtrado["DY"] > 9)
 ]
+
+if len(oportunidades) > 0:
+
+    st.success(
+        f"🟢 {len(oportunidades)} oportunidades encontradas"
+    )
+
+# =========================================================
+# GRÁFICO
+# =========================================================
+
+st.subheader("📈 Radar de Oportunidades")
+
+fig = px.scatter(
+    df_filtrado,
+    x="PVP",
+    y="DY",
+    color="Tipo",
+    size="Score",
+    text="Fundo",
+    hover_data=["Liquidez"],
+    height=500
+)
+
+fig.update_traces(
+    textposition="top center"
+)
+
+st.plotly_chart(
+    fig,
+    use_container_width=True
+)
 
 # =========================================================
 # TABS
@@ -100,7 +169,7 @@ tab1, tab2, tab3 = st.tabs([
 ])
 
 # =========================================================
-# ABA GERAL
+# GERAL
 # =========================================================
 
 with tab1:
@@ -108,40 +177,49 @@ with tab1:
     st.subheader("Todos os FIIs")
 
     st.dataframe(
-        df_filtrado,
+        df_exibicao.style.applymap(
+            colorir_score,
+            subset=["Score"]
+        ),
         use_container_width=True
     )
 
 # =========================================================
-# ABA TIJOLO
+# TIJOLO
 # =========================================================
 
 with tab2:
 
-    tijolo = df_filtrado[
-        df_filtrado["Tipo"] == "Tijolo"
+    tijolo = df_exibicao[
+        df_exibicao["Tipo"] == "Tijolo"
     ]
 
     st.subheader("FIIs de Tijolo")
 
     st.dataframe(
-        tijolo,
+        tijolo.style.applymap(
+            colorir_score,
+            subset=["Score"]
+        ),
         use_container_width=True
     )
 
 # =========================================================
-# ABA PAPEL
+# PAPEL
 # =========================================================
 
 with tab3:
 
-    papel = df_filtrado[
-        df_filtrado["Tipo"] == "Papel"
+    papel = df_exibicao[
+        df_exibicao["Tipo"] == "Papel"
     ]
 
     st.subheader("FIIs de Papel")
 
     st.dataframe(
-        papel,
+        papel.style.applymap(
+            colorir_score,
+            subset=["Score"]
+        ),
         use_container_width=True
     )
