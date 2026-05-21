@@ -153,6 +153,13 @@ fig.update_traces(
     textposition="top center"
 )
 
+fig.update_layout(
+    xaxis_title="P/VP",
+    yaxis_title="Dividend Yield (%)",
+    legend_title="Tipo",
+    template="plotly_dark"
+)
+
 st.plotly_chart(
     fig,
     use_container_width=True
@@ -176,12 +183,10 @@ with tab1:
 
     st.subheader("Todos os FIIs")
 
-    st.dataframe(
-        df_exibicao.style.applymap(
-            colorir_score,
-            subset=["Score"]
-        ),
-        use_container_width=True
+    st.data_editor(
+        df_exibicao,
+        use_container_width=True,
+        disabled=True
     )
 
 # =========================================================
@@ -196,12 +201,10 @@ with tab2:
 
     st.subheader("FIIs de Tijolo")
 
-    st.dataframe(
-        tijolo.style.applymap(
-            colorir_score,
-            subset=["Score"]
-        ),
-        use_container_width=True
+    st.data_editor(
+        tijolo,
+        use_container_width=True,
+        disabled=True
     )
 
 # =========================================================
@@ -216,10 +219,10 @@ with tab3:
 
     st.subheader("FIIs de Papel")
 
-    st.dataframe(
-        papel.style.applymap(
-            colorir_score,
-            subset=["Score"]
-        ),
+    st.data_editor(
+        papel,
+        use_container_width=True,
+        disabled=True
+    )
         use_container_width=True
     )
