@@ -1,5 +1,3 @@
-# utils/score.py
-
 def calcular_score(row):
 
     score = 0
